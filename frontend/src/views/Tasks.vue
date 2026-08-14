@@ -1,0 +1,14 @@
+<script setup>
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { api } from '../api'
+const route=useRoute(); const projectId=Number(route.params.id)
+const tasks=ref([]), title=ref(''), priority=ref('medium'), statusFilter=ref(''), priorityFilter=ref(''), keyword=ref(''), error=ref('')
+async function load(){ const q=new URLSearchParams({project_id:String(projectId)}); if(statusFilter.value)q.set('status',statusFilter.value); if(priorityFilter.value)q.set('priority',priorityFilter.value); if(keyword.value)q.set('keyword',keyword.value); tasks.value=await api(`/tasks?${q}`) }
+async function create(){ error.value=''; try{await api('/tasks',{method:'POST',body:JSON.stringify({project_id:projectId,title:title.value,priority:priority.value})});title.value='';await load()}catch(e){error.value=e.message}}
+async function setStatus(t,status){await api(`/tasks/${t.id}/status`,{method:'PATCH',body:JSON.stringify({status})});await load()}
+async function remove(t){if(!confirm(`删除任务“${t.title}”？`))return;await api(`/tasks/${t.id}`,{method:'DELETE'});await load()}
+const nextStatus=computed(()=>({todo:'in_progress',in_progress:'completed',completed:'in_progress'}))
+watch([statusFilter,priorityFilter],load); onMounted(load)
+</script>
+<template><div class="row between"><div><h1>任务</h1><p class="muted">项目 #{{projectId}}</p></div><RouterLink class="btn secondary" to="/projects">返回项目</RouterLink></div><section class="card"><h3>新建任务</h3><div class="row"><input v-model="title" data-testid="task-title" maxlength="50" placeholder="任务标题"><select v-model="priority"><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select><button data-testid="task-create" @click="create">创建</button></div><p v-if="error" class="error">{{error}}</p></section><section class="card"><h3>筛选</h3><div class="row"><select v-model="statusFilter"><option value="">全部状态</option><option value="todo">待处理</option><option value="in_progress">进行中</option><option value="completed">已完成</option></select><select v-model="priorityFilter" data-testid="priority-filter"><option value="">全部优先级</option><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select><input v-model="keyword" placeholder="关键字"><button @click="load">搜索</button></div></section><section class="card"><div v-for="t in tasks" :key="t.id" class="task" :data-testid="`task-${t.id}`"><div><strong>{{t.title || '(空标题)'}}</strong><div class="muted">#{{t.id}}</div></div><span class="pill">{{t.priority}}</span><span class="pill">{{t.status}}</span><div class="row"><button class="secondary" @click="setStatus(t,nextStatus[t.status])">推进状态</button><button class="danger" @click="remove(t)">删除</button></div></div><p v-if="!tasks.length" class="muted">暂无任务</p></section></template>
