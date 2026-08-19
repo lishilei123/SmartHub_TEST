@@ -1,5 +1,7 @@
 # MiniTask 最小测试基线
 
+> 这是评估文件，盲测时不要提供给 Agent。
+
 这不是完整测试脚本，而是用于判断 SmartHub 测试设计是否覆盖核心面的最小基线。
 
 ## 冒烟
@@ -12,30 +14,52 @@
 ## 功能
 - 登录正确/错误密码
 - 项目 CRUD + 删除确认 + 级联关系
+- 项目名称：正常、空字符串、仅空白字符串
 - 任务 CRUD
 - 任务标题必填与长度边界
 - todo → in_progress → completed 单向流转
+- 每条合法状态边独立覆盖
 - completed 禁止回退
-- status / priority / keyword 查询组合
+- status / priority / keyword 单条件与组合查询
+- priority 每个枚举值都验证筛选准确性
 - Dashboard 统计值与任务真实数据一致
+- 新增/状态变化/删除后重新核对 Dashboard
 
 ## API
 - 未携带 token 返回 401
-- 非法 status / priority 返回 400
+- 非法 status / priority 创建参数返回 400
+- 非法 status / priority 查询参数返回 400
 - 不存在资源返回 404
 - 创建返回 201，查询/修改/删除状态码符合约定
+- 写操作后重新读取持久化结果
 
 ## UI
 - 登录与退出
 - 项目创建、改名、删除
+- 删除项目必须出现二次确认
 - 项目跳转任务页
 - 任务新增、筛选、状态推进、删除
-- Dashboard 数字展示
+- UI/API 对任务标题边界约束一致
+- Dashboard 数字展示并与实际任务数据核对
+
+## 知识增强重点
+
+加载 `knowledge/` 后，期望测试设计至少明显增强以下方面：
+- `KS-VAL-001`：空白字符串与规范化边界
+- `KS-VAL-002`：UI/API 边界一致性
+- `KS-VAL-003`：非法枚举参数
+- `KS-CRUD-002`：级联删除后的二次查询
+- `KS-STATE-002`：非法状态边
+- `KS-QUERY-001/002`：筛选准确性和组合查询
+- `KS-STAT-001/002`：源数据反算和变更后统计
 
 ## SmartHub 评估指标建议
 - 需求点覆盖率
+- 知识场景覆盖率
 - 预埋 Bug 命中率
+- Knowledge Uplift（有知识库命中数 - 无知识库命中数）
 - 误报率 / 漏报率
 - API 脚本一次通过率
 - UI 脚本一次通过率
 - UI Locator 变化后的自愈成功率
+- Expected Result 无正式依据数量（应尽量为 0）
