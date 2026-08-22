@@ -3,12 +3,26 @@
 ## 项目目标
 MiniTask 是 SmartHub AI 自动化测试平台的测试靶场，用于验证需求分析、测试设计、API/UI 自动执行、缺陷识别和测试报告能力。
 
+## 正式输入边界
+
+当前版本正式需求由下面两份文件共同组成：
+
+```text
+docs/requirements.md
+docs/api-spec.yaml
+```
+
+- `requirements.md` 描述业务规则与 UI 交互要求。
+- `api-spec.yaml` 描述正式预期 API 契约，包括接口路径、Method、认证、请求参数、边界、响应码与响应结构。
+- `http://localhost:8000/docs` 是 FastAPI 根据当前被测实现生成的运行时 Swagger，仅用于接口浏览和调试，不作为 Expected Result。
+- 若运行时 Swagger 与正式需求冲突，以 `requirements.md` 与 `api-spec.yaml` 为测试预期依据。
+
 ## 功能范围
 
 ### 登录
 - 支持用户登录。
 - 正确账号密码登录成功。
-- 错误密码必须返回失败。
+- 错误账号或错误密码必须返回失败，不能返回 token。
 
 演示账号：admin / admin123
 
@@ -18,6 +32,7 @@ MiniTask 是 SmartHub AI 自动化测试平台的测试靶场，用于验证需�
 - 修改项目
 - 删除项目
 - 项目名称不能为空
+- 项目名称仅包含空白字符也视为无效
 - 删除项目需要确认
 - 删除项目需要同步删除任务
 
@@ -27,6 +42,8 @@ MiniTask 是 SmartHub AI 自动化测试平台的测试靶场，用于验证需�
 - 删除任务
 - 查询任务
 - 标题不能为空
+- 标题仅包含空白字符也视为无效
+- 标题最大长度 50 个字符，UI 与 API 边界保持一致
 - 优先级：high、medium、low
 - 状态：todo、in_progress、completed
 
@@ -35,13 +52,19 @@ MiniTask 是 SmartHub AI 自动化测试平台的测试靶场，用于验证需�
 
 todo -> in_progress -> completed
 
-已完成任务不能回退。
+- 状态只能单向逐级推进。
+- 不允许跳级。
+- 已完成任务不能回退。
+- 状态修改使用正式 API 契约定义的状态流转接口。
 
 ### 查询
 支持：
 - 状态筛选
 - 优先级筛选
 - 关键字搜索
+- 多条件组合筛选
+- 非法 status / priority 枚举参数必须返回 400
+- 筛选结果必须与实际字段值准确匹配
 
 ### Dashboard
 展示：
@@ -49,3 +72,26 @@ todo -> in_progress -> completed
 - 任务数量
 - 已完成数量
 - 未完成数量
+
+统计值必须与当前持久化数据一致：
+
+```text
+未完成数量 = 任务数量 - 已完成数量
+```
+
+## API 通用规则
+
+除健康检查与登录外，业务接口需要携带登录返回的 Bearer Token。
+
+通用响应约定：
+- 创建成功：201
+- 查询、修改、删除成功：200
+- 请求参数、枚举、边界或业务规则非法：400
+- 未登录或 token 无效：401
+- 资源不存在：404
+
+完整接口定义见：
+
+```text
+docs/api-spec.yaml
+```

@@ -8,11 +8,15 @@
 
 ## 对照方式
 
-使用同一份 `docs/requirements.md`、同一模型配置和同一测试范围执行两组：
+使用同一组正式需求输入、同一模型配置和同一测试范围执行两组：
 
 ```text
-A：无共享知识库
-B：加载 knowledge/ 到 workspace/shared/knowledge
+正式输入：
+- docs/requirements.md
+- docs/api-spec.yaml
+
+A：仅正式输入
+B：正式输入 + knowledge/ 到 workspace/shared/knowledge
 ```
 
 建议每组至少执行 2 次，降低生成式波动影响。

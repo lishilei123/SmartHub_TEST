@@ -17,8 +17,8 @@
 
 ## 使用建议
 
-1. A 组只给 SmartHub `docs/requirements.md`。
-2. B 组额外加载 `knowledge/` 到 `workspace/shared/knowledge`。
+1. A 组给 SmartHub 正式输入：`docs/requirements.md` + `docs/api-spec.yaml`。
+2. B 组使用相同正式输入，并额外加载 `knowledge/` 到 `workspace/shared/knowledge`。
 3. 让 PlanningAgent 完成需求理解和测试设计，再执行 UI + API 测试。
 4. 测试结束后再用本文档做命中率对照。
 5. 建议记录：发现数、误报数、漏报数、知识场景覆盖率、自动生成脚本成功率、脚本自愈成功率。
